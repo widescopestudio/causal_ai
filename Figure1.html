@@ -105,8 +105,8 @@
   .zone-robustness {
     border: 2px solid var(--c-chk);
     background: #f5f0ff;
-    grid-column: 2;
-    grid-row: 2;
+    grid-column: 1 / 3;
+    grid-row: 3;
     display: flex; flex-direction: column; gap: 10px;
   }
 
@@ -203,10 +203,10 @@
     width: fit-content;
   }
 
-  /* ── Robustness 2×2 grid ─────────────────────────────────── */
+  /* ── Robustness check grid ───────────────────────────────── */
   .checks-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
   }
 
@@ -223,6 +223,7 @@
   .badge-fragile  { background: #fee2e2; color: #991b1b; }
   .badge-resolved { background: #d1fae5; color: #065f46; }
   .badge-exploratory { background: #fef3c7; color: #92400e; }
+  .badge-mixed { background: #e0e7ff; color: #3730a3; }
 
   /* ── Summary box ──────────────────────────────────────────── */
   .summary {
@@ -259,7 +260,7 @@
 <div class="fig-header">
   <span class="fig-label">Figure 1</span>
   <h1 class="fig-title">Analytical Pipeline: Causal Discovery and Policy Simulation</h1>
-  <p class="fig-subtitle">Seven-layer pipeline with four targeted robustness checks</p>
+  <p class="fig-subtitle">Seven-layer pipeline with a six-check robustness protocol and three-algorithm consensus</p>
 </div>
 
 <div class="legend">
@@ -326,7 +327,7 @@
       <div class="box box-emp">
         <span class="layer-num">Layer 4b</span>
         <div class="box-title">Vulnerability Profiling</div>
-        <div class="box-detail">Variational autoencoder<br><em>k</em> = 3 profiles<br>Silhouette = 0.271</div>
+        <div class="box-detail">Variational autoencoder<br><em>k</em> = 3 profiles<br>Silhouette = 0.278</div>
       </div>
     </div>
 
@@ -335,10 +336,11 @@
     <!-- Layer 5 -->
     <div class="box box-emp">
       <span class="layer-num">Layer 5</span>
-      <div class="box-title">Synthetic Population + Explainability &nbsp;(CTGAN · LightGBM · SHAP)</div>
+      <div class="box-title">Synthetic Population + Explainability &nbsp;(CTGAN/TVAE · LightGBM · SHAP)</div>
       <div class="box-detail">
-        180,000 synthetic records for scenario modelling &nbsp;|&nbsp; AUC = 0.643<br>
-        <strong>Not fed into RL environment</strong> — CTGAN/LightGBM uncertainty does not propagate
+        Synthetic records for scenario modelling &nbsp;|&nbsp; TVAE mean <em>W</em><sub>1</sub> = 0.113 vs CTGAN 0.125<br>
+        LightGBM AUC = 0.643 &nbsp;|&nbsp; Detectability AUC = 1.00 (either generator)<br>
+        <strong>Not fed into RL environment</strong> — synthetic-data uncertainty does not propagate
       </div>
     </div>
 
@@ -378,8 +380,8 @@
       <div class="box-title">Equity-Constrained Optimisation &nbsp;(NSGA-II)</div>
       <div class="box-detail">
         500 generations &nbsp;|&nbsp; 100 individuals &nbsp;|&nbsp; 5 independent runs<br>
-        Knee-point: health gain <em>H</em> = 0.394, Gini = 0.054<br>
-        61.4% inequality reduction at 1.4% health-gain cost
+        Knee-point: health gain <em>H</em> = 0.393, Gini = 0.045<br>
+        61.4% inequality reduction at 1.4% health-gain cost &nbsp;|&nbsp; invariant across 12 sensitivity scenarios
       </div>
     </div>
 
@@ -399,44 +401,77 @@
   <!--  ROBUSTNESS CHECKS  (right column, bottom)                -->
   <!-- ══════════════════════════════════════════════════════════ -->
   <div class="zone zone-robustness">
-    <div class="zone-label">Robustness Checks &nbsp;·&nbsp; Checks 1–4</div>
+    <div class="zone-label">Robustness Checks &nbsp;·&nbsp; Six-Check Protocol + Cross-Algorithm Consensus</div>
 
     <div class="checks-grid">
 
       <div class="box box-chk">
-        <span class="layer-num">Check 1 &amp; 2</span>
+        <span class="layer-num">Checks 1 &amp; 2</span>
         <div class="box-title">Bootstrap &amp; Subcluster Restriction</div>
         <div class="box-detail">
           <em>B</em> = 500 resamples (full division)<br>
           Repeated on top-tercile CSI subset<br>
-          Khulna: 77.6% → 23.4%<br>
-          Rajshahi: 41.6% → 27.6%
+          Khulna: 78.0% → 23.4%<br>
+          Rajshahi: 44.4% → 27.4%
         </div>
         <span class="badge badge-fragile">FRAGILE</span>
       </div>
 
       <div class="box box-chk">
         <span class="layer-num">Check 3</span>
-        <div class="box-title">Reward Encoding Ablation</div>
+        <div class="box-title">Reward Ablation &amp; State-Feature Exclusion</div>
         <div class="box-detail">
-          PPO retrained with CAI encoding<br>
-          fixed at 0.05 (standard) vs 0.18<br>
-          (pathway-encoded)<br>
-          Preference not preserved
+          Reward re-encoding: Khulna 1→4, Rajshahi 8→6<br>
+          (neither preserved)<br>
+          CSI removed from RL state: Khulna 1→4 (changed),<br>
+          Rajshahi 8→8 (held)
         </div>
         <span class="badge badge-fragile">FRAGILE</span>
       </div>
 
       <div class="box box-chk">
-        <span class="layer-num">Check 4</span>
-        <div class="box-title">Scale Sensitivity</div>
+        <span class="layer-num">Cross-Algorithm</span>
+        <div class="box-title">NOTEARS + GOLEM + LiNGAM Consensus</div>
         <div class="box-detail">
-          All 265 edges × 0.2× and 5.0× rescale<br>
-          0 / 265 edges changed status (0.0%)<br>
-          Mathematical consequence of<br>
-          StandardScaler z-standardisation
+          Khulna &amp; Rajshahi: majority 2/3<br>
+          LiNGAM detects both (<em>w</em>=0.299, 0.151)<br>
+          GOLEM (scale-invariant) detects <strong>neither</strong>
         </div>
-        <span class="badge badge-resolved">RESOLVED BY DESIGN</span>
+        <span class="badge badge-mixed">MAJORITY, GOLEM DISSENTS</span>
+      </div>
+
+      <div class="box box-chk">
+        <span class="layer-num">Check 4</span>
+        <div class="box-title">Scale Sensitivity &amp; z-Scoring Orientation</div>
+        <div class="box-detail">
+          Uniform rescale (0.2×–5.0×): 0/265 edges<br>
+          changed (mathematical consequence of z-scaling)<br>
+          z-scored vs. raw NOTEARS: CSI→ANC 4+ edge<br>
+          <strong>absent under raw scale</strong> in both divisions
+        </div>
+        <span class="badge badge-fragile">FRAGILE</span>
+      </div>
+
+      <div class="box box-chk">
+        <span class="layer-num">Check 5</span>
+        <div class="box-title">Regularisation-Grid Stability</div>
+        <div class="box-detail">
+          <em>λ</em> ∈ {0.05, 0.10, 0.20}<br>
+          Khulna: edge present at all three <em>λ</em><br>
+          Rajshahi: absent at <em>λ</em> = 0.20
+        </div>
+        <span class="badge badge-fragile">FRAGILE (Rajshahi)</span>
+      </div>
+
+      <div class="box box-chk">
+        <span class="layer-num">Check 6</span>
+        <div class="box-title">Negative-Control Edge Testing</div>
+        <div class="box-detail">
+          4 scientifically implausible edges × 8 divisions<br>
+          6/32 pairs spuriously recovered<br>
+          Empirical false-positive rate = 18.8%
+        </div>
+        <span class="badge badge-exploratory">SPECIFICITY FLOOR</span>
       </div>
 
       <div class="box box-chk">
@@ -458,19 +493,31 @@
       <div class="box-title">Robustness Summary</div>
       <div class="summary-row">
         <span class="summary-check">Checks 1–2</span>
-        <span class="summary-result">Bootstrap unstable in both divisions; subcluster restriction reduces stability further → candidate pathway is <strong>exploratory</strong></span>
+        <span class="summary-result">Bootstrap stability moderate-to-fragile in both divisions; subcluster restriction reduces stability further → candidate pathway is <strong>exploratory</strong></span>
       </div>
       <div class="summary-row">
         <span class="summary-check">Check 3</span>
-        <span class="summary-result">RL preference not preserved under ablation → policy layer <strong>re-encodes</strong> upstream association</span>
+        <span class="summary-result">Reward re-encoding not preserved in either division; state-feature exclusion changes Khulna but not Rajshahi → <strong>mixed</strong> independence evidence</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-check">Cross-algorithm</span>
+        <span class="summary-result">Majority (2/3) consensus in both divisions, but GOLEM — the algorithm built to be scale-invariant — dissents in both; its dissent is weighted <strong>more heavily than a simple vote count</strong></span>
       </div>
       <div class="summary-row">
         <span class="summary-check">Check 4</span>
-        <span class="summary-result">z-Standardisation absorbs rescaling by construction → scale sensitivity <strong>resolved by preprocessing design</strong></span>
+        <span class="summary-result">Uniform rescaling absorbed by z-standardisation by construction, but z-scored-vs-raw orientation check shows the edge is <strong>preprocessing-conditional</strong> in both divisions</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-check">Check 5</span>
+        <span class="summary-result">Khulna stable across <em>λ</em>; Rajshahi pathway <strong>disappears</strong> at higher regularisation</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-check">Check 6</span>
+        <span class="summary-result">18.8% empirical false-positive rate sets the specificity floor against which pathway bootstrap stabilities should be read</span>
       </div>
       <div class="summary-row">
         <span class="summary-check">Survey-weighted</span>
-        <span class="summary-result">Edge absent under DHS survey weights → third independent line of evidence supporting exploratory classification</span>
+        <span class="summary-result">Edge absent under DHS survey weights → additional line of evidence supporting exploratory classification</span>
       </div>
     </div>
 
@@ -480,7 +527,7 @@
 
 <p class="attribution">
   Figure 1 &mdash; Bangladesh Demographic and Health Survey, 2011–2022.
-  Causal discovery and policy simulation for child stunting in Bangladesh: multi-wave survey analysis with robustness characterisation.
+  Causal discovery and policy simulation for child stunting in Bangladesh: a multi-wave Demographic and Health Survey analysis with comprehensive robustness evaluation.
 </p>
 
 </body>
